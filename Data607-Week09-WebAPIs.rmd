@@ -1,0 +1,101 @@
+---
+title: "Data607-Week09-Web APIs"
+author: "Vinayak Kamath"
+date: "3/27/2020"
+output:
+  html_document:
+    highlight: pygments
+    theme: cerulean
+    toc: TRUE
+    toc_depth: 4    
+    toc_float: 
+      collapsed: true
+      smooth_scroll: true
+      number_sections: true    
+  pdf_document: default
+---
+
+--------------------------------------------------------------------------------    
+
+  
+### New York Times web APIs
+
+The New York Times web site provides a rich set of APIs, as described [here](https://developer.nytimes.com/apis); For this assignment I have chosen [`Article Search`](https://developer.nytimes.com/docs/articlesearch-product/1/overview) API from New York Times web APIs; we will construct an interface in R to read in the JSON data, and transform it into an R DataFrame. 
+
+
+```{r warning=FALSE, include=FALSE}
+library(httr)
+library(dplyr )
+library(jsonlite)
+library(RCurl)
+library(DT)
+
+MyKey <- 'YlXyHBpddKbANJAqPvu3glQoX8SnaVO7'
+ArticleSearchApiUrl <- 'http://api.nytimes.com/svc/search/v2/articlesearch.json?'
+
+```
+  
+--------------------------------------------------------------------------------
+
+### Article Search API
+
+*Overview:* Use the [`Article Search`](https://developer.nytimes.com/docs/articlesearch-product/1/overview) API to look up articles by keyword. You can refine your search using filters and facets.   
+
+  
+*Example Call:* https://api.nytimes.com/svc/search/v2/articlesearch.json?q=election&api-key=yourkey  
+  
+  
+*Filtering Your Search:* Use filters to narrow the scope of your search. You can specify the fields and the values that your query will be filtered on.  
+  
+--------------------------------------------------------------------------------  
+
+### Reading JSON data
+  
+##### 1. Read/Search for **coronavirus+baseball** in `Source` as The New York Times and `news_desk` as Sports:
+
+```{r}
+# Creating the search url for the API request call:
+theJsonUrl <- paste(ArticleSearchApiUrl,'fq=coronavirus+baseball  AND source:("The New York Times") AND news_desk:("Sports")&begin_date=20200327&end_date=20200327&sort=newest&api-key=',MyKey, sep = '')
+
+# Fetching the reponse from the call:
+JsonUrldata <- getURL(theJsonUrl)
+
+json.data <- fromJSON(JsonUrldata)
+
+# Creating a dataframe with select columns:
+json.df <- data.frame(json.data$`response`) %>%
+  select (docs.abstract, docs.web_url, docs.snippet, docs.source, docs.pub_date, docs.document_type,  docs.news_desk, docs.section_name, docs.subsection_name, docs.word_count, meta.hits)
+
+# Row count and Data view:
+nrow(json.df)
+datatable(json.df)
+
+```
+
+##### 2. Read/Search for **coronavirus+baseball** in all `Source` and in all `news_desk`: 
+
+```{r}
+# Creating the search url for the API request call:
+theJsonUrl <- paste(ArticleSearchApiUrl,'fq=coronavirus+baseball&begin_date=20200327&end_date=20200327&sort=newest&api-key=',MyKey, sep = '')
+
+# Fetching the reponse from the call:
+JsonUrldata <- getURL(theJsonUrl)
+
+json.data.all <- fromJSON(JsonUrldata)
+
+# Creating a dataframe with select columns:
+json.df.all <- data.frame(json.data.all$`response`) %>%
+  select (docs.abstract, docs.web_url, docs.snippet, docs.source, docs.pub_date, docs.document_type,  docs.news_desk, docs.section_name, docs.subsection_name, docs.word_count, meta.hits)
+
+# Row count and Data view:
+nrow(json.df.all)
+datatable(json.df.all)
+
+
+```
+
+
+--------------------------------------------------------------------------------
+
+\clearpage  
+  
